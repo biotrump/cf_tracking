@@ -95,6 +95,23 @@ if(ANDROID_NDK OR ARM_LINUX_SYSROOT)
 	else()
 		message(FATAL_ERROR "openCV not foud")
 	endif()
+	set(OpenCV_LIBS "opencv_calib3d     "
+	"opencv_highgui    "
+	"opencv_objdetect  "
+	"opencv_superres	"
+	"opencv_core        "
+	"opencv_imgcodecs  "
+	"opencv_photo      "
+	"opencv_videoio	"
+	"opencv_features2d  "
+	"opencv_imgproc    "
+	"opencv_shape      "
+	"opencv_video	"
+	"opencv_flann       "
+	"opencv_ml         "
+	"opencv_stitching  "
+	"opencv_videostab")
+
 else()
 	#QT5
 	# Tell CMake to run moc when necessary:
@@ -188,21 +205,22 @@ set(CF_MAIN_SOURCES
     ${CF_TCLAP_DIR}/tclap/CmdLine.h)
 
 if(1)
-add_executable(DSSTcpp
+	add_executable(DSSTcpp
     src/main/cmd_dsst.cpp
     src/cf_libs/dsst/dsst_debug.hpp
     src/cf_libs/dsst/dsst_tracker.hpp
     ${CF_MAIN_SOURCES}
     ${CF_LIB_COMMON_SOURCES})
-target_link_libraries(DSSTcpp ${OpenCV_LIBS})
+	target_link_libraries(DSSTcpp ${OpenCV_LIBS})
 
-add_executable(KCFcpp
+	add_executable(KCFcpp
     src/main/cmd_kcf.cpp
     src/cf_libs/kcf/kcf_debug.hpp
     src/cf_libs/kcf/kcf_tracker.hpp
     ${CF_MAIN_SOURCES}
     ${CF_LIB_COMMON_SOURCES})
-target_link_libraries(KCFcpp ${OpenCV_LIBS})
+	target_link_libraries(KCFcpp ${OpenCV_LIBS})
+
 else()
 	add_executable(DSSTcpp
 		src/main/main_dsst.cpp
