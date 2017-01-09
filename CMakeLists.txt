@@ -27,7 +27,7 @@
 # or tort (including negligence or otherwise) arising in any way out of
 # the use of this software, even if advised of the possibility of such damage.
 
-project(CfTracking)
+project(KCF)
 
 cmake_minimum_required(VERSION 3.1.0)
 
@@ -46,6 +46,11 @@ endif(WITH_OPENMP)
 if(CMAKE_COMPILER_IS_GNUCC)
     ADD_DEFINITIONS ( -std=c++11 )
 endif(CMAKE_COMPILER_IS_GNUCC)
+
+# --------------------------------------------------
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${KCF_BINARY_DIR}/bin)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${KCF_BINARY_DIR}/lib)
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${KCF_BINARY_DIR}/lib)
 
 # --------------------------------------------------
 # switch searching path to host, not NDK or arm gnu
@@ -78,11 +83,9 @@ if(OPENMP_FOUND)
 endif()
 
 if(ANDROID_NDK OR ARM_LINUX_SYSROOT)
-	#openCV
-	set(OpenCV_DIR $ENV{OPENCV_OUT}/sdk/native/)
-	include( "${OpenCV_DIR}/jni/OpenCVConfig.cmake" )
-	#set(OpenCV_DIR "/home/thomas/opencv/build_2.4.13/debug")
-	#set(OpenCV_DIR "/home/thomas/build/bcv-x86.gl/out/opencv/2.4.x-static/x86_64")
+	#openCV 3.2.0 SDK by "make install"
+	set(OpenCV_DIR $ENV{OPENCV_OUT}/sdk/native/jni)
+	include( "${OpenCV_DIR}/OpenCVConfig.cmake" )
 	message("++++OpenCV_DIR:${OpenCV_DIR}")
 	FIND_PACKAGE( OpenCV REQUIRED)
 	if(OpenCV_FOUND)
@@ -95,22 +98,23 @@ if(ANDROID_NDK OR ARM_LINUX_SYSROOT)
 	else()
 		message(FATAL_ERROR "openCV not foud")
 	endif()
-	set(OpenCV_LIBS "opencv_calib3d     "
-	"opencv_highgui    "
-	"opencv_objdetect  "
-	"opencv_superres	"
-	"opencv_core        "
-	"opencv_imgcodecs  "
-	"opencv_photo      "
-	"opencv_videoio	"
-	"opencv_features2d  "
-	"opencv_imgproc    "
-	"opencv_shape      "
-	"opencv_video	"
-	"opencv_flann       "
-	"opencv_ml         "
-	"opencv_stitching  "
-	"opencv_videostab")
+
+#	set(OpenCV_LIBS opencv_calib3d
+#	opencv_highgui
+#	opencv_objdetect
+#	opencv_superres
+#	opencv_core
+#	opencv_imgcodecs
+#	opencv_photo
+#	opencv_videoio
+#	opencv_features2d
+#	opencv_imgproc
+#	opencv_shape
+#	opencv_video
+#	opencv_flann
+#	opencv_ml
+#	opencv_stitching
+#	opencv_videostab)
 
 else()
 	#QT5
@@ -204,39 +208,6 @@ set(CF_MAIN_SOURCES
     ${CF_CV_EXT_DIR}/tracker_run.cpp
     ${CF_TCLAP_DIR}/tclap/CmdLine.h)
 
-if(1)
-	add_executable(DSSTcpp
-    src/main/cmd_dsst.cpp
-    src/cf_libs/dsst/dsst_debug.hpp
-    src/cf_libs/dsst/dsst_tracker.hpp
-    ${CF_MAIN_SOURCES}
-    ${CF_LIB_COMMON_SOURCES})
-	target_link_libraries(DSSTcpp ${OpenCV_LIBS})
+add_subdirectory(src)
 
-	add_executable(KCFcpp
-    src/main/cmd_kcf.cpp
-    src/cf_libs/kcf/kcf_debug.hpp
-    src/cf_libs/kcf/kcf_tracker.hpp
-    ${CF_MAIN_SOURCES}
-    ${CF_LIB_COMMON_SOURCES})
-	target_link_libraries(KCFcpp ${OpenCV_LIBS})
-
-else()
-	add_executable(DSSTcpp
-		src/main/main_dsst.cpp
-		src/cf_libs/dsst/dsst_debug.hpp
-		src/cf_libs/dsst/dsst_tracker.hpp
-		${CF_MAIN_SOURCES}
-		${CF_LIB_COMMON_SOURCES})
-	qt5_use_modules(DSSTcpp Widgets  OpenGL Test Concurrent)
-	target_link_libraries(DSSTcpp ${OpenCV_LIBS})
-
-	add_executable(KCFcpp
-		src/main/main_kcf.cpp
-		src/cf_libs/kcf/kcf_debug.hpp
-		src/cf_libs/kcf/kcf_tracker.hpp
-		${CF_MAIN_SOURCES}
-		${CF_LIB_COMMON_SOURCES})
-	qt5_use_modules(KCFcpp Widgets  OpenGL Test Concurrent)
-	target_link_libraries(KCFcpp ${OpenCV_LIBS})
-endif()
+add_subdirectory(src/main)
