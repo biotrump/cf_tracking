@@ -129,7 +129,8 @@ Parameters TrackerRun::parseCmdArgs(int argc, const char** argv)
         {
             string singleValueStr;
             getline(initBbSs, singleValueStr, ',');
-            initBb[i] = static_cast<double>(stod(singleValueStr.c_str()));
+            //initBb[i] = static_cast<double>(stod(singleValueStr.c_str()));
+			initBb[i] = static_cast<double>(strtod(singleValueStr.c_str(), NULL ));
         }
 
         paras.initBb = Rect_<double>(initBb[0], initBb[1], initBb[2], initBb[3]);
@@ -364,7 +365,7 @@ bool TrackerRun::update()
                 cv::Point_<double>(br.x, tl.y), Scalar(0, 0, 255));
         }
 
-        imshow(_windowTitle.c_str(), hudImage);
+        //imshow(_windowTitle.c_str(), hudImage);
 
         if (!_paras.imgExportPath.empty())
         {

@@ -29,7 +29,7 @@
 
 project(CfTracking)
 
-cmake_minimum_required(VERSION 2.8.7)
+cmake_minimum_required(VERSION 3.1.0)
 
 # option to enable OpenMP; only relevant for the KCF version with the
 # VOT scale estimation
@@ -46,6 +46,17 @@ endif(WITH_OPENMP)
 if(CMAKE_COMPILER_IS_GNUCC)
     ADD_DEFINITIONS ( -std=c++11 )
 endif(CMAKE_COMPILER_IS_GNUCC)
+
+# --------------------------------------------------
+# switch searching path to host, not NDK or arm gnu
+# If set to NEVER, then the roots in CMAKE_FIND_ROOT_PATH will be ignored
+# and only the host system root will be used
+# --------------------------------------------------
+if(ANDROID_NDK OR ARM_LINUX_SYSROOT)
+set( CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER )
+set( CMAKE_FIND_ROOT_PATH_MODE_LIBRARY NEVER )
+set( CMAKE_FIND_ROOT_PATH_MODE_INCLUDE NEVER )
+endif()
 
 # add OpenCV
 #set(OPENCV_DIR_HINT "")
@@ -66,45 +77,65 @@ if(OPENMP_FOUND)
 	add_definitions(-DENABLE_OPENMP)
 endif()
 
-#QT5
-# Tell CMake to run moc when necessary:
-set(CMAKE_AUTOMOC ON)
-# As moc files are generated in the binary dir, tell CMake
-# to always look for includes there:
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-# Widgets finds its own dependencies (QtGui and QtCore).
-find_package(Qt5Widgets)
-#  find_package(Qt5Declarative)
-
-# The Qt5Widgets_INCLUDES also includes the include directories for
-# dependencies QtCore and QtGui
-include_directories(${Qt5Widgets_INCLUDES})
-
-# We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
-add_definitions(${Qt5Widgets_DEFINITIONS})
-
-#openCV
-#set(OpenCV_DIR $ENV{OPENCV_OUT})
-#set(OpenCV_DIR "/home/thomas/opencv/build_2.4.13/debug")
-#set(OpenCV_DIR "/home/thomas/build/bcv-x86.gl/out/opencv/2.4.x-static/x86_64")
-set(OpenCV_DIR "/home/thomas/opencv/build_3.1.0/debug")
-message("++++OpenCV_DIR:${OpenCV_DIR}")
-FIND_PACKAGE( OpenCV REQUIRED)
-if(OpenCV_FOUND)
-	message("found")
-	message( "OpenCV_INCLUDE_DIRS:${OpenCV_INCLUDE_DIRS}" )
-	message( "OpenCV_INCLUDES:${OpenCV_INCLUDES}")
-	message( "OpenCV_LIBRARIES:${OpenCV_LIBRARIES}")
-	message( "OpenCV_LIBS:${OpenCV_LIBS}")
-	message( "OpenCV_DEFINITIONS:${OpenCV_DEFINITIONS}")
+if(ANDROID_NDK OR ARM_LINUX_SYSROOT)
+	#openCV
+	set(OpenCV_DIR $ENV{OPENCV_OUT}/sdk/native/)
+	include( "${OpenCV_DIR}/jni/OpenCVConfig.cmake" )
+	#set(OpenCV_DIR "/home/thomas/opencv/build_2.4.13/debug")
+	#set(OpenCV_DIR "/home/thomas/build/bcv-x86.gl/out/opencv/2.4.x-static/x86_64")
+	message("++++OpenCV_DIR:${OpenCV_DIR}")
+	FIND_PACKAGE( OpenCV REQUIRED)
+	if(OpenCV_FOUND)
+		message("found")
+		message( "OpenCV_INCLUDE_DIRS:${OpenCV_INCLUDE_DIRS}" )
+		message( "OpenCV_INCLUDES:${OpenCV_INCLUDES}")
+		message( "OpenCV_LIBRARIES:${OpenCV_LIBRARIES}")
+		message( "OpenCV_LIBS:${OpenCV_LIBS}")
+		message( "OpenCV_DEFINITIONS:${OpenCV_DEFINITIONS}")
+	else()
+		message(FATAL_ERROR "openCV not foud")
+	endif()
 else()
-	message(FATAL_ERROR "openCV not foud")
+	#QT5
+	# Tell CMake to run moc when necessary:
+	set(CMAKE_AUTOMOC ON)
+	# As moc files are generated in the binary dir, tell CMake
+	# to always look for includes there:
+	set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+	# Widgets finds its own dependencies (QtGui and QtCore).
+	find_package(Qt5Widgets)
+	#  find_package(Qt5Declarative)
+
+	# The Qt5Widgets_INCLUDES also includes the include directories for
+	# dependencies QtCore and QtGui
+	include_directories(${Qt5Widgets_INCLUDES})
+
+	# We need add -DQT_WIDGETS_LIB when using QtWidgets in Qt 5.
+	add_definitions(${Qt5Widgets_DEFINITIONS})
+
+	#openCV
+	#set(OpenCV_DIR $ENV{OPENCV_OUT})
+	#set(OpenCV_DIR "/home/thomas/opencv/build_2.4.13/debug")
+	#set(OpenCV_DIR "/home/thomas/build/bcv-x86.gl/out/opencv/2.4.x-static/x86_64")
+	set(OpenCV_DIR "/home/thomas/opencv/build_3.2.0/debug")
+	message("++++OpenCV_DIR:${OpenCV_DIR}")
+	FIND_PACKAGE( OpenCV REQUIRED)
+	if(OpenCV_FOUND)
+		message("found")
+		message( "OpenCV_INCLUDE_DIRS:${OpenCV_INCLUDE_DIRS}" )
+		message( "OpenCV_INCLUDES:${OpenCV_INCLUDES}")
+		message( "OpenCV_LIBRARIES:${OpenCV_LIBRARIES}")
+		message( "OpenCV_LIBS:${OpenCV_LIBS}")
+		message( "OpenCV_DEFINITIONS:${OpenCV_DEFINITIONS}")
+	else()
+		message(FATAL_ERROR "openCV not foud")
+	endif()
 endif()
 
 message("*** OpenCV_LIBS:${OpenCV_LIBS}")
 message("*** OpenCV_LIBRARIES:${OpenCV_LIBRARIES}")
-	
+
 #FIND_PACKAGE( OpenCV REQUIRED )
 link_directories ( ${OpenCV_LIB_DIR} )
 #MESSAGE(STATUS "OpenCV_LIB_DIR: ${OpenCV_LIB_DIR}")
@@ -124,7 +155,7 @@ include_directories(${CF_TCLAP_DIR}
 include_directories(src/cf_libs/kcf
                     src/cf_libs/dsst
                     src/cf_libs/common)
-                    
+
 set(CF_PIOTR_SOURCES
     ${CF_PIOTR_DIR}/gradientMex.hpp
     ${CF_PIOTR_DIR}/src/gradientMex.cpp
@@ -156,21 +187,38 @@ set(CF_MAIN_SOURCES
     ${CF_CV_EXT_DIR}/tracker_run.cpp
     ${CF_TCLAP_DIR}/tclap/CmdLine.h)
 
+if(1)
 add_executable(DSSTcpp
-    src/main/main_dsst.cpp
+    src/main/cmd_dsst.cpp
     src/cf_libs/dsst/dsst_debug.hpp
     src/cf_libs/dsst/dsst_tracker.hpp
     ${CF_MAIN_SOURCES}
     ${CF_LIB_COMMON_SOURCES})
-qt5_use_modules(DSSTcpp Widgets  OpenGL Test Concurrent)
 target_link_libraries(DSSTcpp ${OpenCV_LIBS})
 
 add_executable(KCFcpp
-    src/main/main_kcf.cpp
+    src/main/cmd_kcf.cpp
     src/cf_libs/kcf/kcf_debug.hpp
     src/cf_libs/kcf/kcf_tracker.hpp
     ${CF_MAIN_SOURCES}
     ${CF_LIB_COMMON_SOURCES})
-qt5_use_modules(KCFcpp Widgets  OpenGL Test Concurrent)
 target_link_libraries(KCFcpp ${OpenCV_LIBS})
+else()
+	add_executable(DSSTcpp
+		src/main/main_dsst.cpp
+		src/cf_libs/dsst/dsst_debug.hpp
+		src/cf_libs/dsst/dsst_tracker.hpp
+		${CF_MAIN_SOURCES}
+		${CF_LIB_COMMON_SOURCES})
+	qt5_use_modules(DSSTcpp Widgets  OpenGL Test Concurrent)
+	target_link_libraries(DSSTcpp ${OpenCV_LIBS})
 
+	add_executable(KCFcpp
+		src/main/main_kcf.cpp
+		src/cf_libs/kcf/kcf_debug.hpp
+		src/cf_libs/kcf/kcf_tracker.hpp
+		${CF_MAIN_SOURCES}
+		${CF_LIB_COMMON_SOURCES})
+	qt5_use_modules(KCFcpp Widgets  OpenGL Test Concurrent)
+	target_link_libraries(KCFcpp ${OpenCV_LIBS})
+endif()

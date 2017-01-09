@@ -93,7 +93,7 @@ namespace cf_tracking
 
         void showPatch(const cv::Mat& patchResized)
         {
-            imshow(_SUB_WINDOW_TITLE, patchResized);
+            //imshow(_SUB_WINDOW_TITLE, patchResized);
         }
 
         void setPsr(double psrClamped)
@@ -105,7 +105,7 @@ namespace cf_tracking
         {
             cv::Mat responseOutput = response.clone();
             _maxResponse = maxResponse;
-            imshow(_RESPONSE_TITLE, responseOutput);
+            //imshow(_RESPONSE_TITLE, responseOutput);
         }
 
         void setTargetSizeArea(T targetSizeArea)
